@@ -1,126 +1,207 @@
 <template>
-  <div class="p-6 bg-gray-50 min-h-screen">
-    <h2 class="text-2xl font-bold mb-4 text-gray-800">Properties Table</h2>
-
-    <!-- Filtros -->
-    <div class="flex flex-wrap gap-4 mb-6">
-      <div>
-        <label class="block text-gray-700 font-semibold mb-1">User:</label>
-        <select
-          v-model="selectedUser"
-          class="border border-gray-300 rounded px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400"
-        >
-          <option value="">All</option>
-          <option v-for="user in users" :key="user.id" :value="user.id">{{ user.name }}</option>
-        </select>
+  <div class="bg-white rounded-xl overflow-hidden shadow-lg border border-gray-200">
+    <!-- Header Section Elegante -->
+    <div class="bg-gradient-to-r from-slate-800 to-slate-600 px-6 py-5">
+      <div class="flex items-center justify-between">
+        <h2 class="text-2xl font-semibold text-white flex items-center">
+          <span class="mr-3 text-2xl">🏠</span>
+          Properties Dashboard
+        </h2>
+        <div class="bg-white/10 backdrop-blur rounded-lg px-4 py-2">
+          <span class="text-white font-medium">{{ filteredProperties.length }} Properties</span>
+        </div>
       </div>
-
-      <div>
-        <label class="block text-gray-700 font-semibold mb-1">Property Type:</label>
-        <select
-          v-model="selectedType"
-          class="border border-gray-300 rounded px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400"
-        >
-          <option value="">All</option>
-          <option v-for="type in propertyTypes" :key="type.id" :value="type.id">{{ type.name }}</option>
-        </select>
-      </div>
-
-      <button
-        @click="resetFilters"
-        class="mt-5 sm:mt-0 bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded shadow"
-      >
-        Reset Filters
-      </button>
     </div>
 
-    <!-- Tabla -->
-    <div class="overflow-x-auto bg-white shadow rounded-lg">
-      <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-100">
-          <tr>
-            <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Name</th>
-            <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">User</th>
-            <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Type</th>
-            <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Months Rented</th>
-            <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Currently Rented</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-200">
-          <tr
-            v-for="property in filteredProperties"
-            :key="property.id"
-            class="hover:bg-gray-50 transition-colors"
-          >
-            <td class="px-6 py-4 text-sm text-gray-800">{{ property.name }}</td>
-            <td class="px-6 py-4 text-sm text-gray-800">{{ getUserName(property.userId) }}</td>
-            <td class="px-6 py-4 text-sm text-gray-800">{{ getTypeName(property.typeId) }}</td>
-            <td class="px-6 py-4 text-sm text-gray-800">{{ monthsRented(property) }}</td>
-            <td class="px-6 py-4 text-sm text-gray-800">
-              <span
-                :class="isCurrentlyRented(property) ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'"
-              >
-                {{ isCurrentlyRented(property) ? 'Yes' : 'No' }}
-              </span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <!-- Filters Section -->
+    <div class="bg-gray-50 border-b border-gray-200 px-6 py-4">
+      <div class="mx-auto">
+        <div class="flex flex-wrap gap-6 items-end">
+          <div class="flex-1 min-w-0 max-w-xs">
+            <label class="block text-sm font-medium text-gray-700 mb-2">👤 Owner</label>
+            <select 
+              v-model="filterUser" 
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+            >
+              <option value="">All Owners</option>
+              <option v-for="user in users" :key="user.id" :value="user.id">
+                {{ user.name }}
+              </option>
+            </select>
+          </div>
 
-      <div v-if="filteredProperties.length === 0" class="p-4 text-center text-gray-500">
-        No properties match the selected filters.
+          <div class="flex-1 min-w-0 max-w-xs">
+            <label class="block text-sm font-medium text-gray-700 mb-2">🏢 Type</label>
+            <select 
+              v-model="filterType" 
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+            >
+              <option value="">All Types</option>
+              <option v-for="type in propertyTypes" :key="type.id" :value="type.id">
+                {{ type.name.charAt(0).toUpperCase() + type.name.slice(1) }}
+              </option>
+            </select>
+          </div>
+
+          <button
+            @click="resetFilters"
+            class="px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white font-medium rounded-lg shadow-sm transition-colors duration-200 text-sm"
+          >
+            🔄 Reset Filters
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Table Section -->
+    <div class="p-6">
+      <div class="w-full">
+        <div class="bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
+          <table class="w-full">
+            <thead>
+              <tr class="bg-gray-50 border-b border-gray-200">
+                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider bg-gray-100">🏠 Property</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider bg-gray-50">👤 Owner</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider bg-gray-100">🏢 Type</th>
+                <th class="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider bg-gray-50">📅 Months</th>
+                <th class="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider bg-gray-100">📊 Status</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              <tr
+                v-for="prop in filteredProperties"
+                :key="prop.id"
+                class="hover:opacity-75 transition-opacity duration-150"
+              >
+                <td class="px-6 py-6 bg-gray-100">
+                  <div class="font-medium text-gray-900">{{ prop.name }}</div>
+                </td>
+                <td class="px-6 py-6 bg-gray-50">
+                  <span class="font-medium text-gray-700">
+                    {{ getUserName(prop.userId) }}
+                  </span>
+                </td>
+                <td class="px-6 py-6 bg-gray-100">
+                  <span class="font-medium text-gray-700">
+                    {{ getTypeName(prop.typeId) }}
+                  </span>
+                </td>
+                <td class="px-6 py-6 text-center bg-gray-50">
+                  <span class="font-medium text-gray-700">
+                    {{ rentedMonths(prop) }}
+                  </span>
+                </td>
+                <td class="px-6 py-6 text-center bg-gray-100">
+                  <span 
+                    :class="[
+                      'font-medium',
+                      isCurrentlyRented(prop)
+                        ? 'text-green-700'
+                        : 'text-red-700'
+                    ]"
+                  >
+                    {{ isCurrentlyRented(prop) ? '✅ Rented' : '❌ Available' }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Empty state -->
+        <div v-if="filteredProperties.length === 0" class="text-center py-12 bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg mt-6">
+          <div class="text-4xl mb-4">🔍</div>
+          <p class="text-gray-600 text-lg font-medium mb-4">No properties found</p>
+          <button @click="resetFilters" class="px-6 py-3 bg-slate-600 hover:bg-slate-700 text-white font-medium rounded-lg transition-colors">
+            Clear filters
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer with stats -->
+    <div class="px-6 pb-6">
+      <div class="bg-gray-50 px-6 py-4 rounded-lg border border-gray-200">
+        <div class="flex justify-between items-center text-sm">
+          <span class="text-gray-700 font-medium">
+            Showing <span class="font-semibold text-slate-600">{{ filteredProperties.length }}</span> of <span class="font-semibold">{{ properties.length }}</span> properties
+          </span>
+          <div class="flex gap-6">
+            <span class="flex items-center">
+              <span class="w-2 h-2 bg-emerald-500 rounded-full mr-2"></span>
+              <span class="font-medium text-emerald-700">{{ rentedPropertiesCount }} Rented</span>
+            </span>
+            <span class="flex items-center">
+              <span class="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
+              <span class="font-medium text-red-700">{{ availablePropertiesCount }} Available</span>
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { properties } from '../mocks/api.js';
+import { users, propertyTypes, properties } from '@/mocks/api';
+
 export default {
   name: 'PropertyTable',
-  props: {
-    users: { type: Array, required: true },
-    propertyTypes: { type: Array, required: true },
-    properties: { type: Array, required: true },
-  },
   data() {
     return {
-      selectedUser: '',
-      selectedType: '',
+      users,
+      propertyTypes,
+      properties,
+      filterUser: '',
+      filterType: '',
     };
   },
   computed: {
     filteredProperties() {
-      return this.properties.filter((p) => {
-        const userMatch = this.selectedUser ? p.userId == this.selectedUser : true;
-        const typeMatch = this.selectedType ? p.typeId == this.selectedType : true;
-        return userMatch && typeMatch;
-      });
+      return this.properties.filter(
+        (p) =>
+          (!this.filterUser || p.userId === parseInt(this.filterUser)) &&
+          (!this.filterType || p.typeId === parseInt(this.filterType))
+      );
     },
+    rentedPropertiesCount() {
+      return this.filteredProperties.filter(prop => this.isCurrentlyRented(prop)).length;
+    },
+    availablePropertiesCount() {
+      return this.filteredProperties.filter(prop => !this.isCurrentlyRented(prop)).length;
+    }
   },
   methods: {
-    getUserName(userId) {
-      const user = this.users.find((u) => u.id === userId);
+    resetFilters() {
+      this.filterUser = '';
+      this.filterType = '';
+    },
+    getUserName(id) {
+      const user = this.users.find((u) => u.id === id);
       return user ? user.name : 'Unknown';
     },
-    getTypeName(typeId) {
-      const type = this.propertyTypes.find((t) => t.id === typeId);
-      return type ? type.name : 'Unknown';
+    getTypeName(id) {
+      const type = this.propertyTypes.find((t) => t.id === id);
+      return type ? type.name.charAt(0).toUpperCase() + type.name.slice(1) : 'Unknown';
     },
-    monthsRented(property) {
-      if (!property.rentedFrom) return 0;
-      const from = new Date(property.rentedFrom);
-      const to = property.rentedTo ? new Date(property.rentedTo) : new Date();
-      return (to.getFullYear() - from.getFullYear()) * 12 + (to.getMonth() - from.getMonth());
+    rentedMonths(prop) {
+      if (!prop.rentedFrom) return 0;
+      const end = prop.rentedTo ? new Date(prop.rentedTo) : new Date();
+      const from = new Date(prop.rentedFrom);
+      return Math.max(0, Math.floor((end - from) / (1000 * 60 * 60 * 24 * 30)));
     },
-    isCurrentlyRented(property) {
+    isCurrentlyRented(prop) {
+      if (!prop.rentedFrom) return false;
       const now = new Date();
-      return property.rentedFrom && (!property.rentedTo || new Date(property.rentedTo) > now);
-    },
-    resetFilters() {
-      this.selectedUser = '';
-      this.selectedType = '';
+      const rentedFrom = new Date(prop.rentedFrom);
+      const rentedTo = prop.rentedTo ? new Date(prop.rentedTo) : null;
+      
+      return rentedFrom <= now && (!rentedTo || rentedTo > now);
     },
   },
 };
 </script>
+
+<style scoped>
+/* Estilos completamente con Tailwind CSS - Sin CSS personalizado */
+</style>

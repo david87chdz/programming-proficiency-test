@@ -21,9 +21,9 @@ class Bakery
             return 0;
         }
 
-        $cakesForThisIngredient = intdiv($ingredients[$item], $amountNeeded);
+        $cakes = intdiv($ingredients[$item], $amountNeeded);
 
-        $numberOfCakes = min($numberOfCakes, $cakesForThisIngredient);
+        $numberOfCakes = min($numberOfCakes, $cakes);
     }
 
         return $numberOfCakes;
