@@ -16,8 +16,8 @@
     <!-- Filters Section -->
     <div class="bg-gray-50 border-b border-gray-200 px-6 py-4">
       <div class="mx-auto">
-        <div class="flex flex-wrap gap-6 items-end">
-          <div class="flex-1 min-w-0 max-w-xs">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+          <div class="flex-1 min-w-0">
             <label class="block text-sm font-medium text-gray-700 mb-2">👤 Owner</label>
             <select 
               v-model="filterUser" 
@@ -30,7 +30,7 @@
             </select>
           </div>
 
-          <div class="flex-1 min-w-0 max-w-xs">
+          <div class="flex-1 min-w-0">
             <label class="block text-sm font-medium text-gray-700 mb-2">🏢 Type</label>
             <select 
               v-model="filterType" 
@@ -43,12 +43,32 @@
             </select>
           </div>
 
-          <button
-            @click="resetFilters"
-            class="px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white font-medium rounded-lg shadow-sm transition-colors duration-200 text-sm"
-          >
-            🔄 Reset Filters
-          </button>
+          <div class="flex-1 min-w-0">
+            <label class="block text-sm font-medium text-gray-700 mb-2">📅 From Date</label>
+            <input 
+              v-model="filterDateFrom" 
+              type="date"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+            />
+          </div>
+
+          <div class="flex-1 min-w-0">
+            <label class="block text-sm font-medium text-gray-700 mb-2">📅 To Date</label>
+            <input 
+              v-model="filterDateTo" 
+              type="date"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+            />
+          </div>
+
+          <div class="flex-1 min-w-0">
+            <button
+              @click="resetFilters"
+              class="w-full px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white font-medium rounded-lg shadow-sm transition-colors duration-200 text-sm"
+            >
+              🔄 Reset Filters
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -154,15 +174,59 @@ export default {
       properties,
       filterUser: '',
       filterType: '',
+      filterDateFrom: '',
+      filterDateTo: '',
     };
+  },
+  mounted() {
+    this.loadFiltersFromURL();
+  },
+  watch: {
+    filterUser() { this.updateURL(); },
+    filterType() { this.updateURL(); },
+    filterDateFrom() { this.updateURL(); },
+    filterDateTo() { this.updateURL(); },
   },
   computed: {
     filteredProperties() {
-      return this.properties.filter(
-        (p) =>
-          (!this.filterUser || p.userId === parseInt(this.filterUser)) &&
-          (!this.filterType || p.typeId === parseInt(this.filterType))
-      );
+      return this.properties.filter((p) => {
+        // Filter by user
+        if (this.filterUser && p.userId !== parseInt(this.filterUser)) {
+          return false;
+        }
+        
+        // Filter by type
+        if (this.filterType && p.typeId !== parseInt(this.filterType)) {
+          return false;
+        }
+        
+        // Filter by date range
+        if (this.filterDateFrom || this.filterDateTo) {
+          const rentedFrom = p.rentedFrom ? new Date(p.rentedFrom) : null;
+          const rentedTo = p.rentedTo ? new Date(p.rentedTo) : null;
+          
+          if (this.filterDateFrom) {
+            const fromDate = new Date(this.filterDateFrom);
+            // Include properties that start after the from date or are currently rented and overlap
+            if (rentedFrom && rentedFrom < fromDate) {
+              // Check if the property is still rented after the from date
+              if (!rentedTo || rentedTo < fromDate) {
+                return false;
+              }
+            }
+          }
+          
+          if (this.filterDateTo) {
+            const toDate = new Date(this.filterDateTo);
+            // Include properties that start before the to date
+            if (rentedFrom && rentedFrom > toDate) {
+              return false;
+            }
+          }
+        }
+        
+        return true;
+      });
     },
     rentedPropertiesCount() {
       return this.filteredProperties.filter(prop => this.isCurrentlyRented(prop)).length;
@@ -172,9 +236,41 @@ export default {
     }
   },
   methods: {
+    loadFiltersFromURL() {
+      const urlParams = new URLSearchParams(window.location.search);
+      
+      if (urlParams.get('user')) {
+        this.filterUser = urlParams.get('user');
+      }
+      if (urlParams.get('type')) {
+        this.filterType = urlParams.get('type');
+      }
+      if (urlParams.get('dateFrom')) {
+        this.filterDateFrom = urlParams.get('dateFrom');
+      }
+      if (urlParams.get('dateTo')) {
+        this.filterDateTo = urlParams.get('dateTo');
+      }
+    },
+    updateURL() {
+      const params = new URLSearchParams();
+      
+      if (this.filterUser) params.set('user', this.filterUser);
+      if (this.filterType) params.set('type', this.filterType);
+      if (this.filterDateFrom) params.set('dateFrom', this.filterDateFrom);
+      if (this.filterDateTo) params.set('dateTo', this.filterDateTo);
+      
+      const newURL = params.toString() 
+        ? `${window.location.pathname}?${params.toString()}`
+        : window.location.pathname;
+      
+      window.history.replaceState({}, '', newURL);
+    },
     resetFilters() {
       this.filterUser = '';
       this.filterType = '';
+      this.filterDateFrom = '';
+      this.filterDateTo = '';
     },
     getUserName(id) {
       const user = this.users.find((u) => u.id === id);
