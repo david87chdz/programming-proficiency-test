@@ -13,8 +13,8 @@ class ArabicToRoman
      */
     public static function transform(int $arabicNumber): string
     {
-
-         $map = [
+        $translator =
+        [
             1000 => 'M',
             900  => 'CM',
             500  => 'D',
@@ -27,14 +27,15 @@ class ArabicToRoman
             9    => 'IX',
             5    => 'V',
             4    => 'IV',
-            1    => 'I',
+            1    => 'I'
         ];
 
         $romanNumber = '';
 
-
-        foreach ($map as $value => $roman) {
-            while ($arabicNumber >= $value) {
+        foreach($translator as $value => $roman)
+        {
+            while($arabicNumber >= $value)
+            {
                 $romanNumber .= $roman;
                 $arabicNumber -= $value;
             }

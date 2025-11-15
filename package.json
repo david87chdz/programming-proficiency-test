@@ -13,12 +13,14 @@
     "vue": "^2.6.11"
   },
   "devDependencies": {
+    "@babel/core": "^7.28.5",
     "@vue/cli-plugin-babel": "^5.0.8",
     "@vue/cli-plugin-eslint": "^5.0.8",
     "@vue/cli-plugin-unit-jest": "^5.0.8",
     "@vue/cli-service": "^5.0.8",
     "@vue/eslint-config-airbnb": "^5.0.2",
     "@vue/test-utils": "^1.0.3",
+    "@vue/vue2-jest": "^27.0.0",
     "autoprefixer": "^10.4.22",
     "babel-eslint": "^10.1.0",
     "chokidar": "^3.5.2",

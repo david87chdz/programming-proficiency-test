@@ -11,7 +11,7 @@
           Manage your properties efficiently
         </p>
       </div>
-      
+
       <!-- Estadísticas sencillas -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div class="bg-white rounded-lg p-6 text-center shadow-sm border border-gray-200">

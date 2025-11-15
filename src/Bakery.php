@@ -16,15 +16,15 @@ class Bakery
     {
         $numberOfCakes = PHP_INT_MAX;
 
-        foreach ($recipe as $item => $amountNeeded) {
-        if (!isset($ingredients[$item]) || $ingredients[$item] < $amountNeeded) {
-            return 0;
-        }
+        foreach ($recipe as $item => $amountNeeded)
+        {
+            if(!isset($ingredients[$item]) || $ingredients[$item] < $amountNeeded)
+                return 0;
 
-        $cakes = intdiv($ingredients[$item], $amountNeeded);
+            $cakes = intdiv($ingredients[$item], $amountNeeded);
 
-        $numberOfCakes = min($numberOfCakes, $cakes);
-    }
+            $numberOfCakes = min($numberOfCakes, $cakes);
+        }   
 
         return $numberOfCakes;
     }
